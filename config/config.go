@@ -32,6 +32,7 @@ type Config struct {
 		Port int
 		Path string
 	}
+	JWTSecret string `mapstructure:"jwt_secret"`
 }
 
 func Load() (*Config, error) {
