@@ -10,7 +10,16 @@ import (
 	"github.com/fire-disposal/health_DT_go/internal/service"
 )
 
-// 获取单个用户信息
+/*
+// @Summary 获取单个用户信息
+// @Description 根据ID查询用户信息
+// @Tags user
+// @Produce json
+// @Param id query int true "用户ID"
+// @Success 200 {object} models.AppUser
+// @Failure 404 {string} string "用户不存在"
+// @Router /user/info [get]
+*/
 func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	idInt, err := strconv.Atoi(idStr)
@@ -28,7 +37,14 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// 获取用户列表
+/*
+// @Summary 获取用户列表
+// @Description 查询所有用户信息
+// @Tags user
+// @Produce json
+// @Success 200 {array} models.AppUser
+// @Router /user/list [get]
+*/
 func UserListHandler(w http.ResponseWriter, r *http.Request) {
 	users, err := service.ListUsers()
 	if err != nil {
@@ -39,7 +55,17 @@ func UserListHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 
-// 用户注册
+/*
+// @Summary 用户注册
+// @Description 新用户注册
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body models.AppUser true "用户信息"
+// @Success 200 {object} models.AppUser
+// @Failure 500 {string} string "注册失败"
+// @Router /user/register [post]
+*/
 func UserRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var req models.AppUser
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -55,7 +81,17 @@ func UserRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// 用户信息更新
+/*
+// @Summary 用户信息更新
+// @Description 更新用户信息
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body models.AppUser true "用户信息"
+// @Success 200 {object} models.AppUser
+// @Failure 500 {string} string "更新失败"
+// @Router /user/update [put]
+*/
 func UserUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	var req models.AppUser
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ID == 0 {

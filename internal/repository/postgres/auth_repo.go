@@ -179,7 +179,18 @@ func (r *authRepo) GetAdminUserByUsername(username string) (*models.AdminUser, e
 	query := "SELECT id, username, password, role, created_at, updated_at FROM admin_users WHERE username = $1"
 	row := r.db.QueryRow(query, username)
 	var admin models.AdminUser
-	err := row.Scan(&admin.ID, &admin.Username, &admin.Password, &admin.Role, &admin.CreatedAt, &admin.UpdatedAt)
+	err := row.Scan(
+		&admin.ID,
+		&admin.Username,
+		&admin.Email,
+		&admin.Phone,
+		&admin.PasswordHash,
+		&admin.Role,
+		&admin.IsActive,
+		&admin.LastLogin,
+		&admin.CreatedAt,
+		&admin.UpdatedAt,
+	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

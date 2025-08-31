@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/fire-disposal/health_DT_go/internal/app"
 )
 
 // BloodPressureEventData 表示血压事件的数据结构，可扩展字段。
@@ -18,6 +20,21 @@ type BloodPressureEventData struct {
 // BloodPressureHandler 血压数据处理器，实现 HealthHandler，嵌入 BaseHealthHandler。
 type BloodPressureHandler struct {
 	BaseHealthHandler
+}
+
+// 适配 app.Pipeline 的 HealthDataProcessor 接口
+func (h *BloodPressureHandler) Handle(event app.HealthEvent) {
+	if event.EventType != "blood_pressure" {
+		return
+	}
+	data, ok := event.Payload.(BloodPressureEventData)
+	if !ok {
+		return
+	}
+	_ = h.HandleEvent(context.Background(), HealthEvent{
+		Type: "blood_pressure",
+		Data: data,
+	})
 }
 
 // ValidateData 校验血压数据的有效性。

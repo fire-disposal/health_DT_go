@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/fire-disposal/health_DT_go/internal/app"
 )
 
 // SpO2EventData 表示血氧事件的数据结构，可扩展字段。
@@ -17,6 +19,21 @@ type SpO2EventData struct {
 // SpO2Handler 血氧数据处理器，实现 HealthHandler，嵌入 BaseHealthHandler。
 type SpO2Handler struct {
 	BaseHealthHandler
+}
+
+// 适配 app.Pipeline 的 HealthDataProcessor 接口
+func (h *SpO2Handler) Handle(event app.HealthEvent) {
+	if event.EventType != "spo2" {
+		return
+	}
+	data, ok := event.Payload.(SpO2EventData)
+	if !ok {
+		return
+	}
+	_ = h.HandleEvent(context.Background(), HealthEvent{
+		Type: "spo2",
+		Data: data,
+	})
 }
 
 // ValidateData 校验血氧数据的有效性。

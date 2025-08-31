@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/fire-disposal/health_DT_go/internal/app"
 )
 
 // TemperatureEventData 表示体温事件的数据结构，可扩展字段。
@@ -17,6 +19,21 @@ type TemperatureEventData struct {
 // TemperatureHandler 体温数据处理器，实现 HealthHandler，嵌入 BaseHealthHandler。
 type TemperatureHandler struct {
 	BaseHealthHandler
+}
+
+// 适配 app.Pipeline 的 HealthDataProcessor 接口
+func (h *TemperatureHandler) Handle(event app.HealthEvent) {
+	if event.EventType != "temperature" {
+		return
+	}
+	data, ok := event.Payload.(TemperatureEventData)
+	if !ok {
+		return
+	}
+	_ = h.HandleEvent(context.Background(), HealthEvent{
+		Type: "temperature",
+		Data: data,
+	})
 }
 
 // ValidateData 校验体温数据的有效性。

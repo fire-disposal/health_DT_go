@@ -3,8 +3,18 @@ package health
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/fire-disposal/health_DT_go/internal/app"
+	"github.com/fire-disposal/health_DT_go/internal/models"
+	"github.com/fire-disposal/health_DT_go/internal/repository/postgres"
+	"github.com/gin-gonic/gin"
 )
 
 // HeartRateEventData 表示心率事件的数据结构，可扩展字段。
@@ -17,6 +27,21 @@ type HeartRateEventData struct {
 // HeartRateHandler 心率数据处理器，实现 HealthHandler，嵌入 BaseHealthHandler。
 type HeartRateHandler struct {
 	BaseHealthHandler
+}
+
+// 适配 app.Pipeline 的 HealthDataProcessor 接口
+func (h *HeartRateHandler) Handle(event app.HealthEvent) {
+	if event.EventType != "heart_rate" {
+		return
+	}
+	data, ok := event.Payload.(HeartRateEventData)
+	if !ok {
+		return
+	}
+	_ = h.HandleEvent(context.Background(), HealthEvent{
+		Type: "heart_rate",
+		Data: data,
+	})
 }
 
 // ValidateData 校验心率数据的有效性。
@@ -42,9 +67,101 @@ func (h *HeartRateHandler) HandleEvent(ctx context.Context, event HealthEvent) e
 	if err := h.ValidateData(event.Data); err != nil {
 		return err
 	}
-	// 业务处理逻辑（可扩展，如存储、通知等）
-	// 示例：打印心率数据
 	eventData := event.Data.(HeartRateEventData)
-	fmt.Printf("用户 %s 心率数据: %d @ %d\n", eventData.UserID, eventData.HeartRate, eventData.Timestamp)
+
+	// 实际落库逻辑
+	db, ok := ctx.Value("db").(*sql.DB)
+	if !ok || db == nil {
+		return errors.New("数据库连接未注入")
+	}
+	repo := postgres.NewHealthDataRepository(db)
+	record := &models.HealthDataRecord{
+		HealthProfileID: 0, // 可根据业务补充
+		DeviceID:        nil,
+		SchemaType:      "heart_rate",
+		RecordedAt:      time.Unix(eventData.Timestamp, 0),
+		Payload:         nil,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+	payload, _ := json.Marshal(eventData)
+	record.Payload = payload
+	_, err := repo.Create(record)
+	if err != nil {
+		return err
+	}
+
+	// 发布事件通知（如有 eventbus，可扩展通知逻辑）
+	// bus, ok := ctx.Value("eventbus").(*eventbus.EventBus)
+	// if ok && bus != nil {
+	// 	bus.Publish("heart_rate_created", eventData)
+	// }
+
+	fmt.Printf("用户 %s 心率数据已入库: %d @ %d\n", eventData.UserID, eventData.HeartRate, eventData.Timestamp)
 	return nil
+}
+
+// CreateHeartRateHandler 创建心率数据
+func CreateHeartRateHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req models.HealthDataRecord
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		repo := postgres.NewHealthDataRepository(db)
+		id, err := repo.Create(&req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{"id": id, "message": "created"})
+	}
+}
+
+// GetHeartRateHandler 查询心率数据
+func GetHeartRateHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		repo := postgres.NewHealthDataRepository(db)
+		record, err := repo.Get(id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, record)
+	}
+}
+
+// UpdateHeartRateHandler 更新心率数据
+func UpdateHeartRateHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		var req models.HealthDataRecord
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		repo := postgres.NewHealthDataRepository(db)
+		err := repo.Update(id, &req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"id": id, "message": "updated"})
+	}
+}
+
+// DeleteHeartRateHandler 删除心率数据
+func DeleteHeartRateHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		repo := postgres.NewHealthDataRepository(db)
+		err := repo.Delete(id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"id": id, "message": "deleted"})
+	}
 }
