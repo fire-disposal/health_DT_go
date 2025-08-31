@@ -1,0 +1,66 @@
+name: Build & Deploy Backend
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 仅限语义版本号 tag
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  DOCKER_IMAGE_NAME: backend-app
+  REGISTRY: ghcr.io
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Build binary
+        run: |
+          cd cmd/server
+          go build -o app main.go
+
+      - name: Log in to Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.DOCKER_IMAGE_NAME }}
+          tags: type=semver,pattern={{version}}
+
+      - name: Build & push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script: |
+            docker pull ${{ steps.meta.outputs.tags }}
+            docker stop ${ env.DOCKER_IMAGE_NAME } || true
+            docker rm ${ env.DOCKER_IMAGE_NAME } || true
+            docker run -d --name ${ env.DOCKER_IMAGE_NAME } -p 8080:8080 ${{ steps.meta.outputs.tags }}
