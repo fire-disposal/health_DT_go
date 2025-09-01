@@ -40,16 +40,17 @@ type PayloadHandler func(payload map[string]interface{})
 // MsgpackServer 结构体
 type MsgpackServer struct {
 	handler PayloadHandler
+	port    int
 }
 
 // NewMsgpackServer 构造
-func NewMsgpackServer(handler PayloadHandler) *MsgpackServer {
-	return &MsgpackServer{handler: handler}
+func NewMsgpackServer(handler PayloadHandler, port int) *MsgpackServer {
+	return &MsgpackServer{handler: handler, port: port}
 }
 
 // Start 启动监听
 func (s *MsgpackServer) Start() error {
-	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", TCPPort))
+	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", s.port))
 	if err != nil {
 		return err
 	}
