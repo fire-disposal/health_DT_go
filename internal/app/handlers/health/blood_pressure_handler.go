@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/fire-disposal/health_DT_go/internal/app"
+	"go.uber.org/zap"
 )
 
 // BloodPressureEventData 表示血压事件的数据结构，可扩展字段。
@@ -66,6 +67,11 @@ func (h *BloodPressureHandler) HandleEvent(ctx context.Context, event HealthEven
 	// 业务处理逻辑（可扩展，如存储、通知等）
 	// 示例：打印血压数据
 	eventData := event.Data.(BloodPressureEventData)
-	fmt.Printf("用户 %s 血压数据: 收缩压 %d, 舒张压 %d @ %d\n", eventData.UserID, eventData.Systolic, eventData.Diastolic, eventData.Timestamp)
+	zap.L().Info("血压数据",
+		zap.String("user_id", eventData.UserID),
+		zap.Int("systolic", eventData.Systolic),
+		zap.Int("diastolic", eventData.Diastolic),
+		zap.Int64("timestamp", eventData.Timestamp),
+	)
 	return nil
 }

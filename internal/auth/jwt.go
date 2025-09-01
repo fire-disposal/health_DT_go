@@ -6,6 +6,7 @@ import (
 
 	"github.com/fire-disposal/health_DT_go/config"
 	"github.com/golang-jwt/jwt/v4"
+	"go.uber.org/zap"
 )
 
 var (
@@ -25,7 +26,9 @@ func JwtSecret() []byte {
 	once.Do(func() {
 		cfg, err := config.Load()
 		if err != nil {
-			panic("无法加载配置: " + err.Error())
+			zap.L().Error("无法加载配置", zap.Error(err))
+			jwtSecret = nil
+			return
 		}
 		jwtSecret = []byte(cfg.JWTSecret)
 	})

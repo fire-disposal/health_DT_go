@@ -15,6 +15,7 @@ import (
 	"github.com/fire-disposal/health_DT_go/internal/models"
 	"github.com/fire-disposal/health_DT_go/internal/repository/postgres"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // HeartRateEventData 表示心率事件的数据结构，可扩展字段。
@@ -97,7 +98,11 @@ func (h *HeartRateHandler) HandleEvent(ctx context.Context, event HealthEvent) e
 	// 	bus.Publish("heart_rate_created", eventData)
 	// }
 
-	fmt.Printf("用户 %s 心率数据已入库: %d @ %d\n", eventData.UserID, eventData.HeartRate, eventData.Timestamp)
+	zap.L().Info("心率数据已入库",
+		zap.String("user_id", eventData.UserID),
+		zap.Int("heart_rate", eventData.HeartRate),
+		zap.Int64("timestamp", eventData.Timestamp),
+	)
 	return nil
 }
 

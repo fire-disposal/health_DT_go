@@ -8,6 +8,7 @@
 - 数据库驱动：lib/pq v1.10.9
 - JWT认证：golang-jwt/jwt/v4 v4.5.2
 - 加密工具：x/crypto v0.41.0
+- 日志：go.uber.org/zap v1.27.0
 - 其他：goroutines/channels
 
 ---

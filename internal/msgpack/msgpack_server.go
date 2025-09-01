@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
+	"go.uber.org/zap"
 )
 
 // MAGIC 头与端口定义
@@ -71,7 +72,7 @@ func (s *MsgpackServer) handleConn(conn net.Conn) {
 		n, err := conn.Read(tmp)
 		if err != nil {
 			if err != io.EOF {
-				// 可加日志
+				zap.L().Error("TCP连接读取异常", zap.Error(err))
 			}
 			break
 		}

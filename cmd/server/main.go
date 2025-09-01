@@ -12,10 +12,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 
 	"github.com/fire-disposal/health_DT_go/api/http"
 	"github.com/fire-disposal/health_DT_go/config"
@@ -30,12 +30,19 @@ import (
 )
 
 func main() {
+	// 初始化 zap logger
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(fmt.Sprintf("无法初始化 zap logger: %v", err))
+	}
+	defer logger.Sync()
+
 	// 加载配置
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("配置加载失败: %v", err)
+		logger.Fatal("配置加载失败", zap.Error(err))
 	}
-	fmt.Printf("调试: cfg.Server.Port = '%v'\n", cfg.Server.Port)
+	logger.Info("调试", zap.String("Server.Port", cfg.Server.Port))
 
 	// 初始化数据库连接
 	pg := cfg.Postgres
@@ -48,7 +55,7 @@ func main() {
 			" sslmode=" + pg.SSLMode
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("数据库连接失败: %v", err)
+		logger.Fatal("数据库连接失败", zap.Error(err))
 	}
 	defer db.Close()
 
@@ -72,23 +79,23 @@ func main() {
 			Password: mqttCfg.Password,
 		})
 		if err := mqttClient.Connect(); err != nil {
-			log.Printf("MQTT连接失败: %v", err)
+			logger.Error("MQTT连接失败", zap.Error(err))
 			return
 		}
 		if err := mqttClient.Subscribe("device/+/data/+", 0, handlers.HandleMQTTMessage(pipeline)); err != nil {
-			log.Printf("MQTT订阅失败: %v", err)
+			logger.Error("MQTT订阅失败", zap.Error(err))
 			return
 		}
-		log.Printf("MQTT监听已启动，Broker: %s，ClientID: %s", mqttCfg.Broker, mqttCfg.ClientID)
+		logger.Info("MQTT监听已启动", zap.String("Broker", mqttCfg.Broker), zap.String("ClientID", mqttCfg.ClientID))
 	}()
 
 	// 启动 Msgpack TCP 监听
 	go func() {
 		server := msgpack.NewMsgpackServer(handlers.HandleMsgpackPayload(pipeline))
 		if err := server.Start(); err != nil {
-			log.Printf("Msgpack监听启动失败: %v", err)
+			logger.Error("Msgpack监听启动失败", zap.Error(err))
 		}
-		log.Printf("Msgpack监听已启动，端口: %d", 5858)
+		logger.Info("Msgpack监听已启动", zap.Int("端口", 5858))
 	}()
 
 	r := gin.Default()

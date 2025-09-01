@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/fire-disposal/health_DT_go/internal/app"
+	"go.uber.org/zap"
 )
 
 // SpO2EventData 表示血氧事件的数据结构，可扩展字段。
@@ -62,6 +63,10 @@ func (h *SpO2Handler) HandleEvent(ctx context.Context, event HealthEvent) error 
 	// 业务处理逻辑（可扩展，如存储、通知等）
 	// 示例：打印血氧数据
 	eventData := event.Data.(SpO2EventData)
-	fmt.Printf("用户 %s 血氧数据: SpO2 %d%% @ %d\n", eventData.UserID, eventData.SpO2, eventData.Timestamp)
+	zap.L().Info("血氧数据",
+		zap.String("user_id", eventData.UserID),
+		zap.Int("spo2", eventData.SpO2),
+		zap.Int64("timestamp", eventData.Timestamp),
+	)
 	return nil
 }

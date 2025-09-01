@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/fire-disposal/health_DT_go/internal/app"
+	"go.uber.org/zap"
 )
 
 // TemperatureEventData 表示体温事件的数据结构，可扩展字段。
@@ -62,6 +63,10 @@ func (h *TemperatureHandler) HandleEvent(ctx context.Context, event HealthEvent)
 	// 业务处理逻辑（可扩展，如存储、通知等）
 	// 示例：打印体温数据
 	eventData := event.Data.(TemperatureEventData)
-	fmt.Printf("用户 %s 体温数据: %.1f℃ @ %d\n", eventData.UserID, eventData.Temperature, eventData.Timestamp)
+	zap.L().Info("体温数据",
+		zap.String("user_id", eventData.UserID),
+		zap.Float64("temperature", eventData.Temperature),
+		zap.Int64("timestamp", eventData.Timestamp),
+	)
 	return nil
 }
