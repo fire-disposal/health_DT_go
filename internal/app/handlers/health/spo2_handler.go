@@ -3,10 +3,13 @@ package health
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/fire-disposal/health_DT_go/internal/app"
+	"github.com/fire-disposal/health_DT_go/internal/repository/redis"
 	"go.uber.org/zap"
 )
 
@@ -60,9 +63,17 @@ func (h *SpO2Handler) HandleEvent(ctx context.Context, event HealthEvent) error 
 	if err := h.ValidateData(event.Data); err != nil {
 		return err
 	}
-	// 业务处理逻辑（可扩展，如存储、通知等）
-	// 示例：打印血氧数据
 	eventData := event.Data.(SpO2EventData)
+
+	// Redis缓存分支
+	{
+		redisClient := redis.GetRedisClient()
+		cacheKey := fmt.Sprintf("health_data:%s:spo2", eventData.UserID)
+		cacheValue, _ := json.Marshal(eventData)
+		redisClient.Set(ctx, cacheKey, cacheValue, 5*time.Minute)
+	}
+
+	// 业务处理逻辑（可扩展，如存储、通知等）
 	zap.L().Info("血氧数据",
 		zap.String("user_id", eventData.UserID),
 		zap.Int("spo2", eventData.SpO2),

@@ -14,6 +14,7 @@ import (
 	"github.com/fire-disposal/health_DT_go/internal/app"
 	"github.com/fire-disposal/health_DT_go/internal/models"
 	"github.com/fire-disposal/health_DT_go/internal/repository/postgres"
+	"github.com/fire-disposal/health_DT_go/internal/repository/redis"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -69,6 +70,14 @@ func (h *HeartRateHandler) HandleEvent(ctx context.Context, event HealthEvent) e
 		return err
 	}
 	eventData := event.Data.(HeartRateEventData)
+
+	// Redis缓存分支
+	{
+		redisClient := redis.GetRedisClient()
+		cacheKey := fmt.Sprintf("health_data:%s:heart_rate", eventData.UserID)
+		cacheValue, _ := json.Marshal(eventData)
+		redisClient.Set(ctx, cacheKey, cacheValue, 5*time.Minute)
+	}
 
 	// 实际落库逻辑
 	db, ok := ctx.Value("db").(*sql.DB)

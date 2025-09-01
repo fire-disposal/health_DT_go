@@ -3,10 +3,13 @@ package health
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/fire-disposal/health_DT_go/internal/app"
+	"github.com/fire-disposal/health_DT_go/internal/repository/redis"
 	"go.uber.org/zap"
 )
 
@@ -64,9 +67,17 @@ func (h *BloodPressureHandler) HandleEvent(ctx context.Context, event HealthEven
 	if err := h.ValidateData(event.Data); err != nil {
 		return err
 	}
-	// 业务处理逻辑（可扩展，如存储、通知等）
-	// 示例：打印血压数据
 	eventData := event.Data.(BloodPressureEventData)
+
+	// Redis缓存分支
+	{
+		redisClient := redis.GetRedisClient()
+		cacheKey := fmt.Sprintf("health_data:%s:blood_pressure", eventData.UserID)
+		cacheValue, _ := json.Marshal(eventData)
+		redisClient.Set(ctx, cacheKey, cacheValue, 5*time.Minute)
+	}
+
+	// 业务处理逻辑（可扩展，如存储、通知等）
 	zap.L().Info("血压数据",
 		zap.String("user_id", eventData.UserID),
 		zap.Int("systolic", eventData.Systolic),

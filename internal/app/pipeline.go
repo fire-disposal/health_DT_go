@@ -20,21 +20,21 @@ type HealthDataProcessor interface {
 
 // Pipeline 健康数据处理主流程
 type Pipeline struct {
-	processors []HealthDataProcessor
+	processors map[string][]HealthDataProcessor // 按事件类型分组
 	eventBus   *eventbus.EventBus
 }
 
 // NewPipeline 创建主流程实例
 func NewPipeline(bus *eventbus.EventBus) *Pipeline {
 	return &Pipeline{
-		processors: make([]HealthDataProcessor, 0),
+		processors: make(map[string][]HealthDataProcessor),
 		eventBus:   bus,
 	}
 }
 
 // RegisterProcessor 注册健康数据处理器，支持扩展
-func (p *Pipeline) RegisterProcessor(processor HealthDataProcessor) {
-	p.processors = append(p.processors, processor)
+func (p *Pipeline) RegisterProcessor(eventType string, processor HealthDataProcessor) {
+	p.processors[eventType] = append(p.processors[eventType], processor)
 }
 
 // ReceiveEvent 统一接收事件并分发
@@ -43,8 +43,8 @@ func (p *Pipeline) ReceiveEvent(event HealthEvent) {
 	if p.eventBus != nil {
 		p.eventBus.Publish(event.EventType, event)
 	}
-	// 分发至各健康数据处理器
-	for _, processor := range p.processors {
+	// 按事件类型分发至对应处理器
+	for _, processor := range p.processors[event.EventType] {
 		processor.Handle(event)
 	}
 }

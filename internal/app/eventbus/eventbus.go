@@ -5,6 +5,14 @@ import (
 	"sync"
 )
 
+// SimDataEvent 模拟数据事件结构
+type SimDataEvent struct {
+	EventType string      // heart_rate, blood_pressure, etc.
+	Payload   interface{} // 具体数据结构
+	Source    string      // 来源标识（simulator）
+	Timestamp int64       // 事件时间戳
+}
+
 // EventHandler 事件处理函数类型
 type EventHandler func(data any)
 

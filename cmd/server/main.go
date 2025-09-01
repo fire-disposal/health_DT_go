@@ -335,18 +335,13 @@ func initDB(cfg *config.Config, logger *zap.Logger) (*sql.DB, error) {
 
 // registerHealthProcessors 注册健康数据处理器
 func registerHealthProcessors(pipeline *app.Pipeline, logger *zap.Logger) {
-	processors := []app.HealthDataProcessor{
-		&health.HeartRateHandler{},
-		&health.BloodPressureHandler{},
-		&health.SpO2Handler{},
-		&health.TemperatureHandler{},
-	}
+	// 按事件类型注册处理器
+	pipeline.RegisterProcessor("heart_rate", &health.HeartRateHandler{})
+	pipeline.RegisterProcessor("blood_pressure", &health.BloodPressureHandler{})
+	pipeline.RegisterProcessor("spo2", &health.SpO2Handler{})
+	pipeline.RegisterProcessor("temperature", &health.TemperatureHandler{})
 
-	for _, processor := range processors {
-		pipeline.RegisterProcessor(processor)
-	}
-
-	logger.Info("健康数据处理器注册完成", zap.Int("count", len(processors)))
+	logger.Info("健康数据处理器注册完成", zap.Int("count", 4))
 }
 
 // startMQTT 启动MQTT监听
