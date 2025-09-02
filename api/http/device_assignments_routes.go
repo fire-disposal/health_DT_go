@@ -13,8 +13,8 @@ import (
 var deviceAssignmentsStore = make(map[int]*models.DeviceAssignment)
 var nextAssignmentID int = 1
 
-func RegisterDeviceAssignmentsRoutes(r *gin.Engine) {
-	group := r.Group("/device_assignments")
+func RegisterDeviceAssignmentsRoutes(router gin.IRouter) {
+	group := router.Group("/device_assignments")
 	{
 		group.POST("", createDeviceAssignmentHandler())
 		group.GET("/:id", getDeviceAssignmentHandler())
@@ -24,16 +24,14 @@ func RegisterDeviceAssignmentsRoutes(r *gin.Engine) {
 	}
 }
 
-/*
-@Summary 创建设备绑定
-@Description 新增设备绑定关系，需提交完整信息
-@Tags DeviceAssignment
-@Accept json
-@Produce json
-@Param body body models.DeviceAssignment true "设备绑定信息"
-@Success 201 {object} models.DeviceAssignment "创建成功"
-@Failure 400 {object} map[string]string "参数错误"
-*/
+// @Summary 创建设备绑定
+// @Description 新增设备绑定关系，需提交完整信息
+// @Tags DeviceAssignment
+// @Accept json
+// @Produce json
+// @Param body body models.DeviceAssignment true "设备绑定信息"
+// @Success 201 {object} models.DeviceAssignment "创建成功"
+// @Failure 400 {object} map[string]string "参数错误"
 func createDeviceAssignmentHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.DeviceAssignment
@@ -49,15 +47,13 @@ func createDeviceAssignmentHandler() gin.HandlerFunc {
 	}
 }
 
-/*
-@Summary 获取设备绑定详情
-@Description 根据ID查询设备绑定信息
-@Tags DeviceAssignment
-@Produce json
-@Param id path int true "设备绑定ID"
-@Success 200 {object} models.DeviceAssignment "查询成功"
-@Failure 404 {object} map[string]string "未找到"
-*/
+// @Summary 获取设备绑定详情
+// @Description 根据ID查询设备绑定信息
+// @Tags DeviceAssignment
+// @Produce json
+// @Param id path int true "设备绑定ID"
+// @Success 200 {object} models.DeviceAssignment "查询成功"
+// @Failure 404 {object} map[string]string "未找到"
 func getDeviceAssignmentHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -70,13 +66,11 @@ func getDeviceAssignmentHandler() gin.HandlerFunc {
 	}
 }
 
-/*
-@Summary 设备绑定列表
-@Description 获取所有设备绑定信息
-@Tags DeviceAssignment
-@Produce json
-@Success 200 {array} models.DeviceAssignment "列表成功"
-*/
+// @Summary 设备绑定列表
+// @Description 获取所有设备绑定信息
+// @Tags DeviceAssignment
+// @Produce json
+// @Success 200 {array} models.DeviceAssignment "列表成功"
 func listDeviceAssignmentsHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var assignments []*models.DeviceAssignment
@@ -87,15 +81,13 @@ func listDeviceAssignmentsHandler() gin.HandlerFunc {
 	}
 }
 
-/*
-@Summary 解绑设备
-@Description 解绑指定设备，设置UnassignedAt时间
-@Tags DeviceAssignment
-@Produce json
-@Param id path int true "设备绑定ID"
-@Success 200 {object} models.DeviceAssignment "解绑成功"
-@Failure 404 {object} map[string]string "未找到"
-*/
+// @Summary 解绑设备
+// @Description 解绑指定设备，设置UnassignedAt时间
+// @Tags DeviceAssignment
+// @Produce json
+// @Param id path int true "设备绑定ID"
+// @Success 200 {object} models.DeviceAssignment "解绑成功"
+// @Failure 404 {object} map[string]string "未找到"
 func unassignDeviceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -110,15 +102,13 @@ func unassignDeviceHandler() gin.HandlerFunc {
 	}
 }
 
-/*
-@Summary 删除设备绑定
-@Description 根据ID删除设备绑定关系
-@Tags DeviceAssignment
-@Produce json
-@Param id path int true "设备绑定ID"
-@Success 200 {object} map[string]interface{} "删除成功"
-@Failure 404 {object} map[string]string "未找到"
-*/
+// @Summary 删除设备绑定
+// @Description 根据ID删除设备绑定关系
+// @Tags DeviceAssignment
+// @Produce json
+// @Param id path int true "设备绑定ID"
+// @Success 200 {object} map[string]interface{} "删除成功"
+// @Failure 404 {object} map[string]string "未找到"
 func deleteDeviceAssignmentHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Param("id"))

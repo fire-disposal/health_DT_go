@@ -5,6 +5,7 @@ import (
 )
 
 // DeviceAssignment 设备与健康档案绑定模型
+// swagger:model DeviceAssignment
 type DeviceAssignment struct {
 	ID              int        `json:"id"`
 	DeviceID        int        `json:"device_id"`

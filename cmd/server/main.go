@@ -1,10 +1,8 @@
-/*
-@title HealthDT API
-@version 1.0
-@description 健康数据平台 API 文档
-@host localhost:8080
-@BasePath /
-*/
+// @title HealthDT API
+// @version 1.0
+// @description 健康数据平台 API 文档
+// @host localhost:8080
+// @BasePath /api/v1
 
 package main
 
@@ -23,7 +21,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	healthapi "github.com/fire-disposal/health_DT_go/api/http" // 避免与标准库 http 冲突
+	"github.com/fire-disposal/health_DT_go/api"
 	"github.com/fire-disposal/health_DT_go/config"
 	"github.com/fire-disposal/health_DT_go/internal/app"
 	"github.com/fire-disposal/health_DT_go/internal/app/eventbus"
@@ -31,8 +29,6 @@ import (
 	"github.com/fire-disposal/health_DT_go/internal/app/handlers/health"
 	"github.com/fire-disposal/health_DT_go/internal/mqtt"
 	"github.com/fire-disposal/health_DT_go/internal/msgpack"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Application 应用程序结构体，统一管理所有组件
@@ -78,9 +74,15 @@ func NewApplication() (*Application, error) {
 		return nil, fmt.Errorf("配置加载失败: %w", err)
 	}
 
-	logger.Info("应用配置加载成功",
-		zap.Int("server_port", cfg.Server.Port),
-		zap.String("env", getEnv("ENV", "development")))
+	if _, err := os.Stat("./config/config.yaml"); err == nil {
+		logger.Info("应用配置加载成功（YAML）",
+			zap.Int("server_port", cfg.Server.Port),
+			zap.String("env", getEnv("ENV", "development")))
+	} else {
+		logger.Info("应用配置加载成功（环境变量）",
+			zap.Int("server_port", cfg.Server.Port),
+			zap.String("env", getEnv("ENV", "development")))
+	}
 
 	// 初始化数据库
 	db, err := initDB(cfg, logger)
@@ -179,7 +181,6 @@ func initLogger() *zap.Logger {
 	return logger
 }
 
-// initRouter 初始化HTTP路由
 func (app *Application) initRouter() {
 	// 根据环境设置Gin模式
 	if getEnv("ENV", "development") == "production" {
@@ -188,7 +189,7 @@ func (app *Application) initRouter() {
 
 	r := gin.New()
 
-	// 自定义中间件
+	// 中间件
 	r.Use(ginLoggerMiddleware(app.logger))
 	r.Use(gin.Recovery())
 	r.Use(corsMiddleware())
@@ -202,14 +203,8 @@ func (app *Application) initRouter() {
 		})
 	})
 
-	// API路由注册
-	// 注册鉴权相关路由
-	// 注册鉴权相关路由
-	// RegisterAuthRoutes 来自 api/http/auth_routes.go，需加包前缀
-	healthapi.RegisterAuthRoutes(r, app.db)
-
-	// Swagger文档
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// 统一挂载所有业务路由和Swagger UI
+	api.SetupRoutes(r, app.db)
 
 	app.router = r
 }
@@ -312,6 +307,15 @@ func initDB(cfg *config.Config, logger *zap.Logger) (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
+		logger.Error("数据库连接创建失败",
+			zap.String("host", pg.Host),
+			zap.Int("port", pg.Port),
+			zap.String("user", pg.User),
+			zap.String("dbname", pg.DBName),
+			zap.String("sslmode", pg.SSLMode),
+			zap.String("dsn", dsn),
+			zap.Error(err),
+		)
 		return nil, fmt.Errorf("数据库连接创建失败: %w", err)
 	}
 
@@ -326,6 +330,15 @@ func initDB(cfg *config.Config, logger *zap.Logger) (*sql.DB, error) {
 
 	if err := db.PingContext(ctx); err != nil {
 		db.Close()
+		logger.Error("数据库连接测试失败",
+			zap.String("host", pg.Host),
+			zap.Int("port", pg.Port),
+			zap.String("user", pg.User),
+			zap.String("dbname", pg.DBName),
+			zap.String("sslmode", pg.SSLMode),
+			zap.String("dsn", dsn),
+			zap.Error(err),
+		)
 		return nil, fmt.Errorf("数据库连接测试失败: %w", err)
 	}
 

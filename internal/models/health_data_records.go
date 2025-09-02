@@ -6,6 +6,7 @@ import (
 )
 
 // HealthDataRecord 健康数据记录模型
+// swagger:model HealthDataRecord
 type HealthDataRecord struct {
 	ID              int             `json:"id"`
 	HealthProfileID int             `json:"health_profile_id"`

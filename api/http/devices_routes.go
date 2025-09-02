@@ -12,9 +12,9 @@ import (
 
 var devicesService *service.DevicesService
 
-func RegisterDevicesRoutes(r *gin.Engine, svc *service.DevicesService) {
+func RegisterDevicesRoutes(router gin.IRouter, svc *service.DevicesService) {
 	devicesService = svc
-	devicesGroup := r.Group("/devices")
+	devicesGroup := router.Group("/devices")
 	{
 		devicesGroup.POST("", createDeviceHandler())
 		devicesGroup.GET("/:id", getDeviceHandler())

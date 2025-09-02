@@ -5,6 +5,7 @@ import (
 )
 
 // Device 设备模型
+// swagger:model Device
 type Device struct {
 	ID           int       `json:"id"`
 	SerialNumber string    `json:"serial_number"`

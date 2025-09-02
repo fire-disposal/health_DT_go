@@ -1,8 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/spf13/viper"
 )
 
 type ServerConfig struct {
@@ -38,6 +41,11 @@ type WebSocketConfig struct {
 	Path string `mapstructure:"path"`
 }
 
+type WechatConfig struct {
+	AppID  string `mapstructure:"appid"`
+	Secret string `mapstructure:"secret"`
+}
+
 type Config struct {
 	Server    ServerConfig    `mapstructure:"server"`
 	Postgres  PostgresConfig  `mapstructure:"postgres"`
@@ -48,13 +56,24 @@ type Config struct {
 	Wechat    WechatConfig    `mapstructure:"wechat"`
 }
 
-type WechatConfig struct {
-	AppID  string `mapstructure:"appid"`
-	Secret string `mapstructure:"secret"`
-}
-
 func Load() (*Config, error) {
-	c := Config{
+	v := viper.New()
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+	v.AddConfigPath("./config")
+	v.AddConfigPath(".")
+	v.AutomaticEnv()
+
+	var c Config
+	if err := v.ReadInConfig(); err == nil {
+		if err := v.Unmarshal(&c); err != nil {
+			return nil, fmt.Errorf("YAML 配置解析失败: %w", err)
+		}
+		return &c, nil
+	}
+
+	// YAML 未找到或解析失败，回退环境变量
+	c = Config{
 		Server: ServerConfig{
 			Port:            getenvInt("PORT", 8002),
 			MsgListenerPort: getenvInt("MSGLISTENER_PORT", 5858),

@@ -23,6 +23,15 @@ func errorResponse(c *gin.Context, status int, msg string) {
 // RegisterAuthRoutes 注册鉴权相关路由
 func RegisterAuthRoutes(r gin.IRouter, db *sql.DB) {
 	authService := service.NewAuthService(postgres.NewAuthRepository(db))
+	// @Summary 管理员登录
+	// @Description 管理员账号密码登录
+	// @Tags auth
+	// @Accept json
+	// @Produce json
+	// @Param login body LoginRequest true "登录信息"
+	// @Success 200 {object} map[string]interface{}
+	// @Failure 401 {string} string "认证失败"
+	// @Router /api/admin/login [post]
 	r.POST("/api/admin/login", func(c *gin.Context) {
 		var req LoginRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -36,6 +45,16 @@ func RegisterAuthRoutes(r gin.IRouter, db *sql.DB) {
 		}
 		c.JSON(http.StatusOK, gin.H{"token": result.Token, "user_id": result.UserID, "role": result.Role})
 	})
+
+	// @Summary App用户登录
+	// @Description App用户账号密码登录
+	// @Tags auth
+	// @Accept json
+	// @Produce json
+	// @Param login body LoginRequest true "登录信息"
+	// @Success 200 {object} map[string]interface{}
+	// @Failure 401 {string} string "认证失败"
+	// @Router /api/app/login [post]
 	r.POST("/api/app/login", func(c *gin.Context) {
 		var req LoginRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -49,6 +68,7 @@ func RegisterAuthRoutes(r gin.IRouter, db *sql.DB) {
 		}
 		c.JSON(http.StatusOK, gin.H{"token": result.Token, "user_id": result.UserID, "role": result.Role})
 	})
+
 	// 注册微信登录路由
 	RegisterWechatLoginRoute(r, authService)
 }
@@ -59,6 +79,15 @@ type WechatLoginRequest struct {
 
 // 新增微信登录路由
 // POST /api/app/wechat_login
+// @Summary 微信登录
+// @Description 微信授权码登录
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param code body WechatLoginRequest true "微信授权码"
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {string} string "认证失败"
+// @Router /api/app/wechat_login [post]
 func RegisterWechatLoginRoute(r gin.IRouter, authService *service.AuthService) {
 	r.POST("/api/app/wechat_login", func(c *gin.Context) {
 		var req WechatLoginRequest

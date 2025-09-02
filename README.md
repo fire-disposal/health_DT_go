@@ -34,8 +34,52 @@ health_DT_go/
 - 易扩展：新增设备/事件/告警仅需添加 Handler
 
 ## 快速开始
-1. 配置数据库与环境变量
-2. 运行 `go run cmd/server/main.go`
-3. 参考 `api/http/` 目录进行接口开发
+1. 推荐使用 `config/config.yaml` 进行集中配置（支持环境变量自动兼容）。
+2. 安装依赖：`go get github.com/spf13/viper`
+3. 运行 `go run cmd/server/main.go`
+4. 参考 `api/http/` 目录进行接口开发
+
+### 配置方式说明
+
+- 优先读取 `config/config.yaml`，如未找到则自动回退环境变量。
+- 配置项与环境变量一一对应，详见 [`config/env.example`](config/env.example:1)。
+
+#### config.yaml 示例
+
+```yaml
+server:
+  port: 8002
+  msglistener_port: 5858
+postgres:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: 12345678
+  dbname: health_dt
+  sslmode: disable
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+mqtt:
+  broker: tcp://localhost:1883
+  client_id: health_dt_client
+  username: ""
+  password: ""
+websocket:
+  host: 0.0.0.0
+  port: 8765
+  path: /ws/health
+jwt_secret: your-secret-key-please-change-in-production
+wechat:
+  appid: your-wechat-appid
+  secret: your-wechat-secret
+```
+
+### 常见问题排查
+
+- 配置加载失败：请检查 `config/config.yaml` 路径及格式，或环境变量是否正确设置。
+- 数据库认证失败：请确认密码、端口、用户名与数据库实际一致，查看日志详细输出定位问题。
+- 依赖缺失：请确保已执行 `go get github.com/spf13/viper`。
 
 更多细节见 [`docs/plan_ai.md`](docs/plan_ai.md:1)

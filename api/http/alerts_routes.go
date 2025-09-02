@@ -9,8 +9,8 @@ import (
 )
 
 // RegisterAlertsRoutes 注册告警相关路由
-func RegisterAlertsRoutes(r *gin.Engine, db *sql.DB) {
-	r.GET("/alerts", queryAlertsHandler(db))
+func RegisterAlertsRoutes(router gin.IRouter, db *sql.DB) {
+	router.GET("/alerts", queryAlertsHandler(db))
 }
 
 /*

@@ -6,6 +6,7 @@ import (
 )
 
 // Alert 告警模型
+// swagger:model Alert
 type Alert struct {
 	ID              int             `json:"id"`
 	HealthProfileID *int            `json:"health_profile_id"`

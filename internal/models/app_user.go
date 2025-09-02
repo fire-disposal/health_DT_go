@@ -6,6 +6,7 @@ import (
 )
 
 // AppUser 普通用户模型，便于扩展，可兼容 Ent 或标准 struct
+// swagger:model AppUser
 type AppUser struct {
 	ID           int64     `json:"id"`            // 用户ID
 	Username     string    `json:"username"`      // 用户名

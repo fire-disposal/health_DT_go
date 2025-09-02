@@ -11,8 +11,8 @@ import (
 )
 
 // RegisterHealthDataRoutes 注册健康数据记录通用 CRUD 路由
-func RegisterHealthDataRoutes(r *gin.Engine, db *sql.DB) {
-	healthGroup := r.Group("/health_data")
+func RegisterHealthDataRoutes(router gin.IRouter, db *sql.DB) {
+	healthGroup := router.Group("/health_data")
 	{
 		healthGroup.POST("", createHealthDataHandler())
 		healthGroup.GET("/:id", getHealthDataHandler())
@@ -20,11 +20,9 @@ func RegisterHealthDataRoutes(r *gin.Engine, db *sql.DB) {
 		healthGroup.DELETE("/:id", deleteHealthDataHandler())
 	}
 	// 注册告警和事件 RESTful 路由
-	RegisterAlertsRoutes(r, db)
-	RegisterEventsRoutes(r, db)
+	RegisterAlertsRoutes(router, db)
 }
 
-/*
 // @Summary 创建健康数据记录
 // @Description 新增一条健康数据
 // @Tags health_data
@@ -33,7 +31,6 @@ func RegisterHealthDataRoutes(r *gin.Engine, db *sql.DB) {
 // @Param data body models.HealthDataRecord true "健康数据内容"
 // @Success 201 {object} map[string]string
 // @Router /health_data [post]
-*/
 func createHealthDataHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.HealthDataRecord
@@ -46,7 +43,6 @@ func createHealthDataHandler() gin.HandlerFunc {
 	}
 }
 
-/*
 // @Summary 查询健康数据记录
 // @Description 根据ID获取健康数据
 // @Tags health_data
@@ -54,7 +50,6 @@ func createHealthDataHandler() gin.HandlerFunc {
 // @Param id path int true "健康数据ID"
 // @Success 200 {object} map[string]interface{}
 // @Router /health_data/{id} [get]
-*/
 func getHealthDataHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -63,7 +58,6 @@ func getHealthDataHandler() gin.HandlerFunc {
 	}
 }
 
-/*
 // @Summary 更新健康数据记录
 // @Description 根据ID更新健康数据
 // @Tags health_data
@@ -73,7 +67,6 @@ func getHealthDataHandler() gin.HandlerFunc {
 // @Param data body models.HealthDataRecord true "健康数据内容"
 // @Success 200 {object} map[string]interface{}
 // @Router /health_data/{id} [put]
-*/
 func updateHealthDataHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -87,7 +80,6 @@ func updateHealthDataHandler() gin.HandlerFunc {
 	}
 }
 
-/*
 // @Summary 删除健康数据记录
 // @Description 根据ID删除健康数据
 // @Tags health_data
@@ -95,7 +87,6 @@ func updateHealthDataHandler() gin.HandlerFunc {
 // @Param id path int true "健康数据ID"
 // @Success 200 {object} map[string]interface{}
 // @Router /health_data/{id} [delete]
-*/
 func deleteHealthDataHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)

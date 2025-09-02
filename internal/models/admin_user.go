@@ -6,6 +6,7 @@ import (
 )
 
 // AdminUser 管理员用户模型，便于扩展，可兼容 Ent 或标准 struct
+// swagger:model AdminUser
 type AdminUser struct {
 	ID           int64     `json:"id"`            // 管理员ID
 	Username     string    `json:"username"`      // 用户名

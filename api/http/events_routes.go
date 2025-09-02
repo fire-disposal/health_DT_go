@@ -9,18 +9,16 @@ import (
 )
 
 // RegisterEventsRoutes 注册事件相关路由
-func RegisterEventsRoutes(r *gin.Engine, db *sql.DB) {
-	r.GET("/events", queryEventsHandler(db))
+func RegisterEventsRoutes(router gin.IRouter, db *sql.DB) {
+	router.GET("/events", queryEventsHandler(db))
 }
 
-/*
 // @Summary 查询事件列表
 // @Description 获取所有事件信息
 // @Tags events
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Router /events [get]
-*/
 func queryEventsHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		repo := postgres.NewEventsRepository(db)

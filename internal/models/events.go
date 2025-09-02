@@ -6,6 +6,7 @@ import (
 )
 
 // Event 事件模型
+// swagger:model Event
 type Event struct {
 	ID              int             `json:"id"`
 	EventType       string          `json:"event_type"`

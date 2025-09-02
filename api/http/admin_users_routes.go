@@ -12,8 +12,8 @@ import (
 var adminUsersStore = make(map[int64]*models.AdminUser)
 var nextAdminID int64 = 1
 
-func RegisterAdminUsersRoutes(r *gin.Engine) {
-	group := r.Group("/admin_users")
+func RegisterAdminUsersRoutes(router gin.IRouter) {
+	group := router.Group("/admin_users")
 	{
 		group.POST("", createAdminUserHandler())
 		group.GET("/:id", getAdminUserHandler())

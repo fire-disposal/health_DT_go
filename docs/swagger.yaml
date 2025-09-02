@@ -1,0 +1,286 @@
+basePath: /api/v1
+definitions:
+  http.WechatLoginRequest:
+    properties:
+      code:
+        type: string
+    type: object
+  models.AppUser:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      id:
+        description: 用户ID
+        type: integer
+      is_active:
+        description: 激活状态
+        type: boolean
+      last_login:
+        description: 最后登录时间
+        type: string
+      password_hash:
+        description: 密码哈希
+        type: string
+      phone:
+        description: 手机号
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      username:
+        description: 用户名
+        type: string
+      wechat_openid:
+        description: 微信openid
+        type: string
+    type: object
+  models.DeviceAssignment:
+    properties:
+      assigned_at:
+        type: string
+      device_id:
+        type: integer
+      health_profile_id:
+        type: integer
+      id:
+        type: integer
+      unassigned_at:
+        type: string
+    type: object
+  models.HealthDataRecord:
+    type: object
+  models.HealthProfile:
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 健康数据平台 API 文档
+  title: HealthDT API
+  version: "1.0"
+paths:
+  /api/app/wechat_login:
+    post:
+      consumes:
+      - application/json
+      description: 微信授权码登录
+      parameters:
+      - description: 微信授权码
+        in: body
+        name: code
+        required: true
+        schema:
+          $ref: '#/definitions/http.WechatLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: 认证失败
+          schema:
+            type: string
+      summary: 微信登录
+      tags:
+      - auth
+  /events:
+    get:
+      description: 获取所有事件信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 查询事件列表
+      tags:
+      - events
+  /health_data:
+    post:
+      consumes:
+      - application/json
+      description: 新增一条健康数据
+      parameters:
+      - description: 健康数据内容
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.HealthDataRecord'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 创建健康数据记录
+      tags:
+      - health_data
+  /health_data/{id}:
+    delete:
+      description: 根据ID删除健康数据
+      parameters:
+      - description: 健康数据ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除健康数据记录
+      tags:
+      - health_data
+    get:
+      description: 根据ID获取健康数据
+      parameters:
+      - description: 健康数据ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 查询健康数据记录
+      tags:
+      - health_data
+    put:
+      consumes:
+      - application/json
+      description: 根据ID更新健康数据
+      parameters:
+      - description: 健康数据ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 健康数据内容
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.HealthDataRecord'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新健康数据记录
+      tags:
+      - health_data
+  /user/info:
+    get:
+      description: 根据ID查询用户信息
+      parameters:
+      - description: 用户ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AppUser'
+        "404":
+          description: 用户不存在
+          schema:
+            type: string
+      summary: 获取单个用户信息
+      tags:
+      - user
+  /user/list:
+    get:
+      description: 查询所有用户信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AppUser'
+            type: array
+      summary: 获取用户列表
+      tags:
+      - user
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: 新用户注册
+      parameters:
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.AppUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AppUser'
+        "500":
+          description: 注册失败
+          schema:
+            type: string
+      summary: 用户注册
+      tags:
+      - user
+  /user/update:
+    put:
+      consumes:
+      - application/json
+      description: 更新用户信息
+      parameters:
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.AppUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AppUser'
+        "500":
+          description: 更新失败
+          schema:
+            type: string
+      summary: 用户信息更新
+      tags:
+      - user
+swagger: "2.0"
