@@ -45,6 +45,12 @@ type Config struct {
 	MQTT      MQTTConfig      `mapstructure:"mqtt"`
 	WebSocket WebSocketConfig `mapstructure:"websocket"`
 	JWTSecret string          `mapstructure:"jwt_secret"`
+	Wechat    WechatConfig    `mapstructure:"wechat"`
+}
+
+type WechatConfig struct {
+	AppID  string `mapstructure:"appid"`
+	Secret string `mapstructure:"secret"`
 }
 
 func Load() (*Config, error) {
@@ -78,6 +84,10 @@ func Load() (*Config, error) {
 			Path: getenv("WS_PATH", "/ws/health"),
 		},
 		JWTSecret: getenv("JWT_SECRET", "your-secret-key"),
+		Wechat: WechatConfig{
+			AppID:  getenv("WECHAT_APPID", ""),
+			Secret: getenv("WECHAT_SECRET", ""),
+		},
 	}
 	return &c, nil
 }

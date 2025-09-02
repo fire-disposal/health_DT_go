@@ -25,6 +25,17 @@ func RegisterDevicesRoutes(r *gin.Engine, svc *service.DevicesService) {
 	}
 }
 
+/*
+@Summary 创建设备
+@Description 新增设备，需提交设备信息
+@Tags Device
+@Accept json
+@Produce json
+@Param body body models.Device true "设备信息"
+@Success 201 {object} map[string]int "创建成功，返回设备ID"
+@Failure 400 {object} map[string]string "参数错误"
+@Failure 500 {object} map[string]string "创建失败"
+*/
 func createDeviceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.Device
@@ -41,6 +52,15 @@ func createDeviceHandler() gin.HandlerFunc {
 	}
 }
 
+/*
+@Summary 获取设备详情
+@Description 根据ID查询设备信息
+@Tags Device
+@Produce json
+@Param id path int true "设备ID"
+@Success 200 {object} models.Device "查询成功"
+@Failure 404 {object} map[string]string "未找到"
+*/
 func getDeviceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -53,6 +73,18 @@ func getDeviceHandler() gin.HandlerFunc {
 	}
 }
 
+/*
+@Summary 更新设备信息
+@Description 根据ID更新设备信息
+@Tags Device
+@Accept json
+@Produce json
+@Param id path int true "设备ID"
+@Param body body models.Device true "设备信息"
+@Success 200 {object} map[string]interface{} "更新成功"
+@Failure 400 {object} map[string]string "参数错误"
+@Failure 500 {object} map[string]string "更新失败"
+*/
 func updateDeviceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -70,6 +102,15 @@ func updateDeviceHandler() gin.HandlerFunc {
 	}
 }
 
+/*
+@Summary 删除设备
+@Description 根据ID删除设备
+@Tags Device
+@Produce json
+@Param id path int true "设备ID"
+@Success 200 {object} map[string]interface{} "删除成功"
+@Failure 500 {object} map[string]string "删除失败"
+*/
 func deleteDeviceHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -81,6 +122,14 @@ func deleteDeviceHandler() gin.HandlerFunc {
 	}
 }
 
+/*
+@Summary 设备列表
+@Description 获取所有设备信息
+@Tags Device
+@Produce json
+@Success 200 {array} models.Device "列表成功"
+@Failure 500 {object} map[string]string "获取失败"
+*/
 func listDevicesHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		devices, err := devicesService.List(c.Request.Context())
@@ -92,7 +141,18 @@ func listDevicesHandler() gin.HandlerFunc {
 	}
 }
 
-// 设备绑定健康档案
+/*
+@Summary 设备绑定健康档案
+@Description 将设备绑定到指定健康档案
+@Tags Device
+@Accept json
+@Produce json
+@Param id path int true "设备ID"
+@Param body body object true "健康档案ID"
+@Success 200 {object} map[string]interface{} "绑定成功"
+@Failure 400 {object} map[string]string "参数错误"
+@Failure 500 {object} map[string]string "绑定失败"
+*/
 func bindDeviceToProfileHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		deviceID, _ := strconv.Atoi(c.Param("id"))

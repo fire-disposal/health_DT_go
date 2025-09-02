@@ -1,9 +1,0 @@
-basePath: /
-host: localhost:8080
-info:
-  contact: {}
-  description: 健康数据平台 API 文档
-  title: HealthDT API
-  version: "1.0"
-paths: {}
-swagger: "2.0"

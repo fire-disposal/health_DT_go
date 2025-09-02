@@ -29,6 +29,8 @@ type UserRepository interface {
 	ExistsByUsername(ctx context.Context, username string) (bool, error)
 	FindByUsername(ctx context.Context, username string) (*models.AppUser, error)
 	FindByID(ctx context.Context, id int64) (*models.AppUser, error)
+	// 新增：通过微信 openid 查询用户
+	GetByWechatOpenID(ctx context.Context, openid string) (*models.AppUser, error)
 }
 
 // UserRepo 用户仓储结构体
@@ -96,6 +98,20 @@ func (r *UserRepo) Update(ctx context.Context, user *models.AppUser) error {
 	query := "UPDATE app_users SET username = $1, email = $2, phone = $3, password_hash = $4, is_active = $5, last_login = $6, wechat_openid = $7, updated_at = NOW() WHERE id = $8"
 	_, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Phone, user.PasswordHash, user.IsActive, user.LastLogin, user.WechatOpenID, user.ID)
 	return err
+}
+
+// 通过微信 openid 查询用户
+func (r *UserRepo) GetByWechatOpenID(ctx context.Context, openid string) (*models.AppUser, error) {
+	query := "SELECT id, username, email, phone, password_hash, is_active, last_login, wechat_openid, created_at, updated_at FROM app_users WHERE wechat_openid = $1"
+	user := &models.AppUser{}
+	err := r.db.QueryRowContext(ctx, query, openid).Scan(
+		&user.ID, &user.Username, &user.Email, &user.Phone, &user.PasswordHash,
+		&user.IsActive, &user.LastLogin, &user.WechatOpenID, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return user, err
 }
 
 // Delete 删除用户

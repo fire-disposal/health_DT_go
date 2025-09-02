@@ -33,6 +33,10 @@ type AuthRepository interface {
 	// 用户查找接口
 	GetAdminUserByUsername(username string) (*models.AdminUser, error)
 	GetAppUserByUsername(username string) (*models.AppUser, error)
+	// 新增：通过微信 openid 查询 app_user
+	GetAppUserByWechatOpenID(openid string) (*models.AppUser, error)
+	// 新增：创建 app_user（用于微信自动注册）
+	CreateAppUser(ctx context.Context, user *models.AppUser) (int64, error)
 }
 
 // authRepo 实现 AuthRepository
@@ -198,6 +202,29 @@ func (r *authRepo) GetAdminUserByUsername(username string) (*models.AdminUser, e
 		return nil, err
 	}
 	return &admin, nil
+}
+
+// 通过微信 openid 查询 app_user
+func (r *authRepo) GetAppUserByWechatOpenID(openid string) (*models.AppUser, error) {
+	query := "SELECT id, username, email, phone, password_hash, is_active, last_login, wechat_openid, created_at, updated_at FROM app_users WHERE wechat_openid = $1"
+	row := r.db.QueryRow(query, openid)
+	var user models.AppUser
+	err := row.Scan(&user.ID, &user.Username, &user.Email, &user.Phone, &user.PasswordHash, &user.IsActive, &user.LastLogin, &user.WechatOpenID, &user.CreatedAt, &user.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// 创建 app_user（用于微信自动注册）
+func (r *authRepo) CreateAppUser(ctx context.Context, user *models.AppUser) (int64, error) {
+	query := "INSERT INTO app_users (username, email, phone, password_hash, is_active, wechat_openid, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"
+	var id int64
+	err := r.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Phone, user.PasswordHash, user.IsActive, user.WechatOpenID, user.CreatedAt, user.UpdatedAt).Scan(&id)
+	return id, err
 }
 
 // 查询普通用户
